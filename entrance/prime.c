@@ -25,12 +25,12 @@ int main(int argc, const char *argv[])
 	{
 		scanf("%zu", &max);
 	}
-	else
+	else if (argv[1][0] != '-')
 	{
 		sscanf(argv[1], "%zu", &max);
 	}
 
-	if (max < 2 || argc > 1 && argv[1][0] == '-')
+	if (max < 2)
 	{
 		return EXIT_FAILURE;
 	}
