@@ -12,3 +12,6 @@ brackets list = brackets' list "" where
 		| elem x ")]}"	= if (elem (y, x) [('(', ')'),('[', ']'),('{', '}')]) then (brackets' xs ys) else False
 		| elem x "([{"	= brackets' xs (x:y:ys)
 		| otherwise		= brackets' xs (y:ys)
+
+main :: IO ()
+main = getLine >>= putStrLn . show . brackets
