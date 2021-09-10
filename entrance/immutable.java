@@ -1,25 +1,44 @@
 import java.util.Iterator;
 
+/** Immutable collection. */
 class Immutable<T extends Object> implements Iterable<T> {
 
 	private final T[] content;
 
 	public final int length;
 
-	public Immutable() {
-		length = 0;
-		content = (T[]) new Object[length];
-	}
-
 	private Immutable(final T[] array) {
 		length = array.length;
 		content = array;
 	}
 
+	/**
+	 * Create empty collection.
+	 */
+	public Immutable() {
+		length = 0;
+		content = (T[]) new Object[length];
+	}
+
+	/**
+	 * Create collection copy with last added value.
+	 * 
+	 * @param value value to add
+	 * 
+	 * @return new immutable collection
+	 */
 	public Immutable<T> add(final T value) {
 		return add(length, value);
 	}
 
+	/**
+	 * Create collection copy with added value.
+	 * 
+	 * @param index index of adding value
+	 * @param value value to add
+	 * 
+	 * @return new immutable collection
+	 */
 	public Immutable<T> add(final int index, final T value) {
 		if (index > length) {
 			return this;
@@ -34,10 +53,24 @@ class Immutable<T extends Object> implements Iterable<T> {
 		return new Immutable<T>(array);
 	}
 
+	/**
+	 * Get collection value by index.
+	 * 
+	 * @param index index of value
+	 * 
+	 * @return value
+	 */
 	public T get(final int index) {
 		return content[index];
 	}
 
+	/**
+	 * Create collection copy without removed value.
+	 * 
+	 * @param index index of value to remove
+	 * 
+	 * @return new immutable collection
+	 */
 	public Immutable<T> remove(final int index) {
 		if (index >= length) {
 			return this;
@@ -73,7 +106,9 @@ class Immutable<T extends Object> implements Iterable<T> {
 /** The Main class. */
 class Main {
 
-	/** The main method. */
+	/**
+	 * The main method.
+	 */
 	public static void main(final String[] args) throws java.lang.Exception
 	{
 		Immutable<Integer> array = new Immutable<Integer>();
