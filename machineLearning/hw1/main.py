@@ -14,6 +14,7 @@ def scale_decorator(func):
     @functools.wraps(func)
     def wrapper(features: pd.DataFrame) -> pd.DataFrame:
         features = func(features).dropna(axis=1, how='all')
+        features.insert(0, 'ones', np.arange(len(features.index)))
         features.columns = np.arange(len(features.columns))
         return features
     return wrapper
