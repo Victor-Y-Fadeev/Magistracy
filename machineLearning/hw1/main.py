@@ -99,42 +99,17 @@ def determination(features: pd.DataFrame, w: pd.Series):
     return r2_score(features[length], y)
 
 
-test_1 = pd.read_csv('./Dataset/Features_Variant_1.csv')
-test_2 = pd.read_csv('./Dataset/Features_Variant_2.csv')
-test_3 = pd.read_csv('./Dataset/Features_Variant_3.csv')
-test_4 = pd.read_csv('./Dataset/Features_Variant_4.csv')
-test_5 = pd.read_csv('./Dataset/Features_Variant_5.csv')
+test_1 = segment(pd.read_csv('./Dataset/Features_Variant_1.csv'))
+test_2 = segment(pd.read_csv('./Dataset/Features_Variant_2.csv'))
+test_3 = segment(pd.read_csv('./Dataset/Features_Variant_3.csv'))
+test_4 = segment(pd.read_csv('./Dataset/Features_Variant_4.csv'))
+test_5 = segment(pd.read_csv('./Dataset/Features_Variant_5.csv'))
 
-test_1 = segment(test_1)
-test_2 = segment(test_2)
-test_3 = segment(test_3)
-test_4 = segment(test_4)
-test_5 = segment(test_5)
-
-train_1 = test_2
-train_1.combine(test_3)
-train_1.combine(test_4)
-train_1.combine(test_5)
-
-train_2 = test_3
-train_2.combine(test_1)
-train_2.combine(test_4)
-train_2.combine(test_5)
-
-train_3 = test_4
-train_3.combine(test_1)
-train_3.combine(test_2)
-train_3.combine(test_5)
-
-train_4 = test_5
-train_4.combine(test_1)
-train_4.combine(test_2)
-train_4.combine(test_3)
-
-train_5 = test_1
-train_5.combine(test_2)
-train_5.combine(test_3)
-train_5.combine(test_4)
+train_1 = pd.concat([test_2, test_3, test_4, test_5])
+train_2 = pd.concat([test_1, test_3, test_4, test_5])
+train_3 = pd.concat([test_1, test_2, test_4, test_5])
+train_4 = pd.concat([test_1, test_2, test_3, test_5])
+train_5 = pd.concat([test_1, test_2, test_3, test_4])
 
 w_1 = learn(train_1)
 w_2 = learn(train_2)
