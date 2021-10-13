@@ -2,6 +2,8 @@ import functools
 import math
 import numpy as np
 import pandas as pd
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 
 
 def scale_decorator(func):
@@ -82,19 +84,88 @@ def root_mean_squared_error(features: pd.DataFrame, w: pd.Series):
     """
     length = len(features.columns) - 1
     y = features[np.arange(length)].dot(w)
-    diff = y - features[length]
-    return math.sqrt(diff.pow(2).sum() / len(features.index))
+    return mean_squared_error(features[length], y, squared=False)
 
 def determination(features: pd.DataFrame, w: pd.Series):
+    """Coefficient of determination (R^2).
+        
+    Keyword arguments:
+    features -- features table
+    w        -- current scales vector
+
+    """
     length = len(features.columns) - 1
     y = features[np.arange(length)].dot(w)
-    return 1 - (y - features[length]).pow(2).sum() / (y - features[length].mean()).pow(2).sum()
+    return r2_score(features[length], y)
 
 
+test_1 = pd.read_csv('./Dataset/Features_Variant_1.csv')
+test_2 = pd.read_csv('./Dataset/Features_Variant_2.csv')
+test_3 = pd.read_csv('./Dataset/Features_Variant_3.csv')
+test_4 = pd.read_csv('./Dataset/Features_Variant_4.csv')
+test_5 = pd.read_csv('./Dataset/Features_Variant_5.csv')
 
-features = pd.read_csv('./Dataset/Features_Variant_5.csv')
+test_1 = segment(test_1)
+test_2 = segment(test_2)
+test_3 = segment(test_3)
+test_4 = segment(test_4)
+test_5 = segment(test_5)
 
-features = segment(features)
+train_1 = test_2
+train_1.combine(test_3)
+train_1.combine(test_4)
+train_1.combine(test_5)
+
+train_2 = test_3
+train_2.combine(test_1)
+train_2.combine(test_4)
+train_2.combine(test_5)
+
+train_3 = test_4
+train_3.combine(test_1)
+train_3.combine(test_2)
+train_3.combine(test_5)
+
+train_4 = test_5
+train_4.combine(test_1)
+train_4.combine(test_2)
+train_4.combine(test_3)
+
+train_5 = test_1
+train_5.combine(test_2)
+train_5.combine(test_3)
+train_5.combine(test_4)
+
+w_1 = learn(train_1)
+w_2 = learn(train_2)
+w_3 = learn(train_3)
+w_4 = learn(train_4)
+w_5 = learn(train_5)
+
+w_1.to_csv('./Result/W_1.csv')
+w_2.to_csv('./Result/W_2.csv')
+w_3.to_csv('./Result/W_3.csv')
+w_4.to_csv('./Result/W_4.csv')
+w_5.to_csv('./Result/W_5.csv')
+
+
+test_rmse = [root_mean_squared_error(test_1, w_1), root_mean_squared_error(test_2, w_2),
+             root_mean_squared_error(test_3, w_3), root_mean_squared_error(test_4, w_4),
+             root_mean_squared_error(test_5, w_5)]
+
+train_rmse = [root_mean_squared_error(train_1, w_1), root_mean_squared_error(train_2, w_2),
+              root_mean_squared_error(train_3, w_3), root_mean_squared_error(train_4, w_4),
+              root_mean_squared_error(train_5, w_5)]
+
+test_r2 = [determination(test_1, w_1), determination(test_2, w_2),
+           determination(test_3, w_3), determination(test_4, w_4),
+           determination(test_5, w_5)]
+
+train_r2 = [determination(train_1, w_1), determination(train_2, w_2),
+            determination(train_3, w_3), determination(train_4, w_4),
+            determination(train_5, w_5)]
+
+
 #print(features[len(features.columns) - 1])
 
 w = learn(features)
