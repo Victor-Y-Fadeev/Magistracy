@@ -1,5 +1,4 @@
 import functools
-import math
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
@@ -54,10 +53,11 @@ def gradient(features: pd.DataFrame, w: pd.Series) -> pd.Series:
     """
     length = len(features.columns) - 1
     x = features[np.arange(length)]
-    w_temp = x.transpose().dot(x.dot(w) - features[length])
-    return 2 * w_temp / len(x.columns)
+    trps = x.transpose()
+    inv = np.linalg.inv(trps.dot(x))
+    return inv.dot(trps).dot(features[length])
 
-def learn(features: pd.DataFrame, epsilon=0.00001) -> pd.Series:
+def learn(features: pd.DataFrame, epsilon=0.001) -> pd.Series:
     """Learn by Gradient descent.
         
     Keyword arguments:
@@ -66,11 +66,11 @@ def learn(features: pd.DataFrame, epsilon=0.00001) -> pd.Series:
     """
     w = pd.Series(np.ones(len(features.columns) - 1))
     grad = gradient(features, w)
-    i = 1000
+    k = 1
     while abs(grad.sum()) >= epsilon:
-        w -= grad / i
+        w -= grad / k
         grad = gradient(features, w)
-        i += 1
+        k += 1
     return w
 
 
@@ -142,14 +142,16 @@ train_r2 = [determination(train_1, w_1), determination(train_2, w_2),
 
 
 test_table = pd.DataFrame(np.array([test_rmse, test_r2]), columns=['T1', 'T2', 'T3', 'T4', 'T5'])
-test_table.insert(5, 'E', test_table.mean())
-test_table.insert(6, 'STD', test_table.var())
+test_table.insert(5, 'E', test_table['T1', 'T2', 'T3', 'T4', 'T5'].mean())
+test_table.insert(6, 'STD', test_table['T1', 'T2', 'T3', 'T4', 'T5'].var())
 test_table.insert(0, 'Type', ['RMSE', 'R^2'])
+test_table.set_index('Type')
 
 train_table = pd.DataFrame(np.array([train_rmse, train_r2]), columns=['T1', 'T2', 'T3', 'T4', 'T5'])
-train_table.insert(5, 'E', train_table.mean())
-train_table.insert(6, 'STD', train_table.var())
+train_table.insert(5, 'E', train_table['T1', 'T2', 'T3', 'T4', 'T5'].mean())
+train_table.insert(6, 'STD', train_table['T1', 'T2', 'T3', 'T4', 'T5'].var())
 train_table.insert(0, 'Type', ['RMSE', 'R^2'])
+train_table.set_index('Type')
 
 print(test_table)
 print(train_table)
