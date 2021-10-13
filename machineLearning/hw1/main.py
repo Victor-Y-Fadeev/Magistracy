@@ -150,3 +150,6 @@ train_table = pd.DataFrame(np.array([train_rmse, train_r2]), columns=['T1', 'T2'
 train_table.insert(5, 'E', train_table.mean())
 train_table.insert(6, 'STD', train_table.var())
 train_table.insert(0, 'Type', ['RMSE', 'R^2'])
+
+print(test_table)
+print(train_table)
