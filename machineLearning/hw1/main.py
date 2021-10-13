@@ -166,13 +166,12 @@ train_r2 = [determination(train_1, w_1), determination(train_2, w_2),
             determination(train_5, w_5)]
 
 
-#print(features[len(features.columns) - 1])
+test_table = pd.DataFrame(np.array([test_rmse, test_r2]), columns=['T1', 'T2', 'T3', 'T4', 'T5'])
+test_table.insert(5, 'E', test_table.mean())
+test_table.insert(6, 'STD', test_table.var())
+test_table.insert(0, 'Type', ['RMSE', 'R^2'])
 
-w = learn(features)
-w.to_csv('./Features_1.csv')
-print(root_mean_squared_error(features, w))
-print(determination(features, w))
-
-
-#print(features[:1].isnull()[37])
-#features[:1].to_csv('./Features_1.csv')
+train_table = pd.DataFrame(np.array([train_rmse, train_r2]), columns=['T1', 'T2', 'T3', 'T4', 'T5'])
+train_table.insert(5, 'E', train_table.mean())
+train_table.insert(6, 'STD', train_table.var())
+train_table.insert(0, 'Type', ['RMSE', 'R^2'])
