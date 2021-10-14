@@ -15,7 +15,7 @@ def scale_decorator(func):
     @functools.wraps(func)
     def wrapper(features: pd.DataFrame) -> pd.DataFrame:
         features = func(features).dropna(axis=1, how='all')
-        features.insert(0, 'ones', np.arange(len(features.index)))
+        #features.insert(0, 'ones', np.arange(len(features.index)))
         features.columns = np.arange(len(features.columns))
         return features
     return wrapper
@@ -54,17 +54,16 @@ def gradient(features: pd.DataFrame, w: pd.Series) -> pd.Series:
     length = len(features.columns) - 1
     x = features[np.arange(length)]
     trps = x.transpose()
-    inv = np.linalg.inv(trps.dot(x))
-    return inv.dot(trps).dot(features[length])
+    return trps.dot(x.dot(w) - features[length])
 
-def learn(features: pd.DataFrame, epsilon=0.001) -> pd.Series:
+def learn(features: pd.DataFrame, epsilon=0.000001) -> pd.Series:
     """Learn by Gradient descent.
         
     Keyword arguments:
     features -- features table
 
     """
-    w = pd.Series(np.ones(len(features.columns) - 1))
+    w = pd.Series(np.zeros(len(features.columns) - 1))
     grad = gradient(features, w)
     k = 1
     while abs(grad.sum()) >= epsilon:
