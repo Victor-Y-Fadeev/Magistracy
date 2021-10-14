@@ -56,7 +56,7 @@ def gradient(features: pd.DataFrame, w: pd.Series) -> pd.Series:
     trps = x.transpose()
     return 2 * trps.dot(x.dot(w) - features[length]) / len(features.index)
 
-def learn(features: pd.DataFrame, epsilon=0.0001) -> pd.Series:
+def learn(features: pd.DataFrame, epsilon=0.000001) -> pd.Series:
     """Learn by Gradient descent.
         
     Keyword arguments:
