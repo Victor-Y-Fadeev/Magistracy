@@ -131,12 +131,24 @@ def get_clusters(graph: nx.graph):
     return clusters
 
 
-graph = load_dataset('./Dataset/Gowalla_edges.txt')
+#graph = load_dataset('./Dataset/Gowalla_edges.txt')
 #graph = load_graph('./Result/graph.csv')
 
-MAX_ITERATIONS = 1
-learn(graph, MAX_ITERATIONS)
-save_graph(graph, './Result/graph.csv')
+#MAX_ITERATIONS = 20
+#learn(graph, MAX_ITERATIONS)
+#save_graph(graph, './Result/graph.csv')
 
-clusters = get_clusters(graph)
-print('CLUSTERS:', len(set(clusters)))
+#clusters = get_clusters(graph)
+#print('CLUSTERS:', len(set(clusters)))
+
+checkins = pd.read_csv('./Dataset/Gowalla_totalCheckins.txt',
+                       sep='\s+',
+                       parse_dates=['check-in time'],
+                       names=('user',
+                              'check-in time',
+                              'latitude',
+                              'longitude',
+                              'location id'))
+
+checkins = checkins.drop(['check-in time', 'latitude', 'longitude'], axis=1)
+print(checkins)
