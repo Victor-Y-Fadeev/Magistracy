@@ -32,6 +32,26 @@ def load_dataset(path) -> nx.graph:
     return nx.from_pandas_edgelist(edges, edge_attr='weight')
 
 
+def save_graph(graph: nx.graph, path):
+    """Save graph to edges list.
+        
+    Keyword arguments:
+    graph -- friendship network
+    path -- path to file
+
+    """
+    nx.to_pandas_edgelist(graph).to_csv(path, index_label=False)
+
+def load_graph(path) -> nx.graph:
+    """Load graph from edges list.
+        
+    Keyword arguments:
+    path -- path to file
+
+    """
+    return nx.from_pandas_edgelist(pd.read_csv(path), edge_attr=True)
+
+
 def update_responsibility(graph: nx.graph):
     """Update responsibility.
         
@@ -112,9 +132,11 @@ def get_clusters(graph: nx.graph):
 
 
 graph = load_dataset('./Dataset/Gowalla_edges.txt')
+#graph = load_graph('./Result/graph.csv')
 
-MAX_ITERATIONS = 10
+MAX_ITERATIONS = 1
 learn(graph, MAX_ITERATIONS)
+save_graph(graph, './Result/graph.csv')
 
 clusters = get_clusters(graph)
 print('CLUSTERS:', len(set(clusters)))
