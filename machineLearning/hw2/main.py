@@ -1,9 +1,26 @@
+import functools
 import numpy as np
 import pandas as pd
 import networkx as nx
 
 
-def load(path) -> nx.graph:
+def modify_decorator(func):
+    """Modify decorator.
+    
+    Keyword arguments:
+    func -- load function to decorate
+
+    """
+    @functools.wraps(func)
+    def wrapper(path) -> nx.graph:
+        graph = func(path)
+        for i in nx.nodes(graph):
+            graph.add_edge(i, i, weight=-1.0)
+        return graph
+    return wrapper
+
+@modify_decorator
+def load_dataset(path) -> nx.graph:
     """Load edges list by path.
         
     Keyword arguments:
@@ -13,16 +30,6 @@ def load(path) -> nx.graph:
     edges = pd.read_csv(path, sep='\s+', names=('source', 'target'))
     edges.insert(len(edges.columns), 'weight', np.ones(len(edges.index)))
     return nx.from_pandas_edgelist(edges, edge_attr='weight')
-
-def modify(graph: nx.graph):
-    """Modify edges before learn.
-        
-    Keyword arguments:
-    graph -- friendship network
-
-    """
-    for i in nx.nodes(graph):
-        graph.add_edge(i, i, weight=-1.0)
 
 
 def update_responsibility(graph: nx.graph):
@@ -68,7 +75,28 @@ def update_availability(graph: nx.graph):
             graph.add_edge(i, k, availability=temp)
 
 
+def learn(graph: nx.graph, iterations):
+    """Learn by Affinity propagation.
+        
+    Keyword arguments:
+    graph -- friendship network
+    iterations -- max iterations
+
+    """
+    i = 0
+    while i < iterations:
+        print('ITERATION:', i)
+        update_responsibility(graph)
+        update_availability(graph)
+        i += 1
+
 def get_clusters(graph: nx.graph):
+    """Extract clusters from graph.
+        
+    Keyword arguments:
+    graph -- friendship network
+
+    """
     clusters = []
     for i in nx.nodes(graph):
         index = next(nx.neighbors(graph, i))
@@ -83,36 +111,10 @@ def get_clusters(graph: nx.graph):
     return clusters
 
 
-
-
-graph = load('./Dataset/Gowalla_edges.txt')
-modify(graph)
+graph = load_dataset('./Dataset/Gowalla_edges.txt')
 
 MAX_ITERATIONS = 10
-i = 0
+learn(graph, MAX_ITERATIONS)
 
-while i < MAX_ITERATIONS:
-    print('ITERATION:', i)
-    update_responsibility(graph)
-    update_availability(graph)
-    i += 1
-
-print(len(set(get_clusters(graph))))
-
-#print(graph[0][2]['responsibility'])
-#graph.add_edge(0, 2, responsibility=5)
-#print(graph[0][2]['responsibility'])
-#print(graph[2][2]['responsibility'])
-
-#print(list(nx.neighbors(graph, 0)))
-
-print(graph[0][0])
-print(graph[0][1])
-print(graph[1][0])
-
-try:
-    print(graph[0][0])
-except KeyError:
-    print('error')
-
-print(graph[0][1]['responsibility'])
+clusters = get_clusters(graph)
+print('CLUSTERS:', len(set(clusters)))
