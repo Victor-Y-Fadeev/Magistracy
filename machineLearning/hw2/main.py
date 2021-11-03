@@ -33,20 +33,20 @@ def update_responsibility(graph: nx.graph):
 
     """
     for i in nx.nodes(graph):
-        max_for, max, index = -1.0, -1.0, 0
+        prev_max, new_max, index = -1.0, -1.0, 0
         for j in nx.neighbors(graph, i):
             try:
                 temp = graph[i][j]['weight'] + graph[i][j]['availability']
             except KeyError:
                 temp = graph[i][j]['weight']
-            if max <= temp:
-                max_for, max, index = max, temp, j
+            if new_max <= temp:
+                prev_max, new_max, index = new_max, temp, j
 
         for j in nx.neighbors(graph, i):
             if j != index:
-                graph.add_edge(i, j, responsibility=graph[i][j]['weight'] - max)
+                graph.add_edge(i, j, responsibility=graph[i][j]['weight'] - new_max)
             else:
-                graph.add_edge(i, j, responsibility=graph[i][j]['weight'] - max_for)
+                graph.add_edge(i, j, responsibility=graph[i][j]['weight'] - prev_max)
 
 def update_availability(graph: nx.graph):
     """Update availability.
@@ -68,11 +68,36 @@ def update_availability(graph: nx.graph):
             graph.add_edge(i, k, availability=temp)
 
 
+def get_clusters(graph: nx.graph):
+    clusters = []
+    for i in nx.nodes(graph):
+        index = next(nx.neighbors(graph, i))
+        new_max = graph[i][index]['availability'] + graph[i][index]['responsibility']
+
+        for k in nx.neighbors(graph, i):
+            temp = graph[i][k]['availability'] + graph[i][k]['responsibility']
+            if temp > new_max:
+                new_max, index = temp, k
+
+        clusters.append(index)
+    return clusters
+
+
+
+
 graph = load('./Dataset/Gowalla_edges.txt')
 modify(graph)
 
-update_responsibility(graph)
-update_availability(graph)
+MAX_ITERATIONS = 10
+i = 0
+
+while i < MAX_ITERATIONS:
+    print('ITERATION:', i)
+    update_responsibility(graph)
+    update_availability(graph)
+    i += 1
+
+print(len(set(get_clusters(graph))))
 
 #print(graph[0][2]['responsibility'])
 #graph.add_edge(0, 2, responsibility=5)
