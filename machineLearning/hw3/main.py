@@ -119,8 +119,8 @@ def get_clusters(graph: nx.graph):
     """
     clusters = []
     for i in nx.nodes(graph):
-        index = next(nx.neighbors(graph, i))
-        new_max = graph[i][index]['availability'] + graph[i][index]['responsibility']
+        index = i
+        new_max = graph[i][i]['availability'] + graph[i][i]['responsibility']
 
         for k in nx.neighbors(graph, i):
             temp = graph[i][k]['availability'] + graph[i][k]['responsibility']
@@ -132,23 +132,30 @@ def get_clusters(graph: nx.graph):
 
 
 #graph = load_dataset('./Dataset/Gowalla_edges.txt')
-#graph = load_graph('./Result/graph.csv')
+graph = load_graph('./Result/graph.csv')
 
 #MAX_ITERATIONS = 20
 #learn(graph, MAX_ITERATIONS)
 #save_graph(graph, './Result/graph.csv')
 
-#clusters = get_clusters(graph)
-#print('CLUSTERS:', len(set(clusters)))
+clusters = get_clusters(graph)
+print('CLUSTERS:', len(set(clusters)))
+
 
 checkins = pd.read_csv('./Dataset/Gowalla_totalCheckins.txt',
                        sep='\s+',
-                       parse_dates=['check-in time'],
+                       #parse_dates=['check-in time'],
+                       usecols = ('user', 'location id'),
                        names=('user',
                               'check-in time',
                               'latitude',
                               'longitude',
                               'location id'))
 
-checkins = checkins.drop(['check-in time', 'latitude', 'longitude'], axis=1)
-print(checkins)
+#checkins.drop(['check-in time', 'latitude', 'longitude'], axis=1, inplace=True)
+checkins = checkins.groupby('user')['location id'].apply(list).reset_index(name='locations')
+checkins.set_index('user', inplace=True)
+
+checkins = checkins.reindex(range(len(clusters)))
+checkins.insert(0, 'cluster', clusters)
+print(checkins[:10])
