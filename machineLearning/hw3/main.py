@@ -2,6 +2,7 @@ import functools
 import numpy as np
 import pandas as pd
 import networkx as nx
+from collections import Counter
 
 
 def modify_decorator(func):
@@ -144,7 +145,6 @@ print('CLUSTERS:', len(set(clusters)))
 
 checkins = pd.read_csv('./Dataset/Gowalla_totalCheckins.txt',
                        sep='\s+',
-                       #parse_dates=['check-in time'],
                        usecols = ('user', 'location id'),
                        names=('user',
                               'check-in time',
@@ -152,10 +152,18 @@ checkins = pd.read_csv('./Dataset/Gowalla_totalCheckins.txt',
                               'longitude',
                               'location id'))
 
-#checkins.drop(['check-in time', 'latitude', 'longitude'], axis=1, inplace=True)
-checkins = checkins.groupby('user')['location id'].apply(list).reset_index(name='locations')
+checkins = checkins.groupby('user')['location id']
+checkins = checkins.apply(list).reset_index(name='locations')
 checkins.set_index('user', inplace=True)
 
-checkins = checkins.reindex(range(len(clusters)))
-checkins.insert(0, 'cluster', clusters)
-print(checkins[:10])
+
+predictions = checkins.reindex(range(len(clusters)), fill_value=[])
+predictions.insert(0, 'cluster', clusters)
+
+predictions = predictions.groupby('cluster')['locations']
+predictions = predictions.agg(sum).reset_index(name='locations')
+predictions.set_index('cluster', inplace=True)
+
+predictions = predictions['locations']
+predictions = predictions.apply(lambda x: [key for key, _ in Counter(x).most_common(10)])
+
