@@ -14,7 +14,7 @@ TOP_LOCATIONS = 10
 
 def modify_decorator(func):
     """Modify decorator.
-    
+
     Keyword arguments:
     func -- load function to decorate
 
@@ -30,7 +30,7 @@ def modify_decorator(func):
 @modify_decorator
 def load_dataset(path) -> nx.graph:
     """Load edges list by path.
-        
+
     Keyword arguments:
     path -- path to file
 
@@ -41,7 +41,7 @@ def load_dataset(path) -> nx.graph:
 
 def load_checkins(path) -> pd.DataFrame:
     """Load users check-ins by path.
-        
+
     Keyword arguments:
     path -- path to file
 
@@ -62,7 +62,7 @@ def load_checkins(path) -> pd.DataFrame:
 
 def save_graph(graph: nx.graph, path):
     """Save graph to edges list.
-        
+
     Keyword arguments:
     graph -- friendship network
     path -- path to file
@@ -72,7 +72,7 @@ def save_graph(graph: nx.graph, path):
 
 def load_graph(path) -> nx.graph:
     """Load graph from edges list.
-        
+
     Keyword arguments:
     path -- path to file
 
@@ -82,7 +82,7 @@ def load_graph(path) -> nx.graph:
 
 def update_responsibility(graph: nx.graph):
     """Update responsibility.
-        
+
     Keyword arguments:
     graph -- friendship network
 
@@ -105,7 +105,7 @@ def update_responsibility(graph: nx.graph):
 
 def update_availability(graph: nx.graph):
     """Update availability.
-        
+
     Keyword arguments:
     graph -- friendship network
 
@@ -125,7 +125,7 @@ def update_availability(graph: nx.graph):
 
 def learn(graph: nx.graph, iterations):
     """Learn by Affinity propagation.
-        
+
     Keyword arguments:
     graph -- friendship network
     iterations -- max iterations
@@ -140,7 +140,7 @@ def learn(graph: nx.graph, iterations):
 
 def get_clusters(graph: nx.graph):
     """Extract clusters from graph.
-        
+
     Keyword arguments:
     graph -- friendship network
 
@@ -160,7 +160,7 @@ def get_clusters(graph: nx.graph):
 
 def get_predictions(checkins: pd.DataFrame, clusters) -> pd.DataFrame:
     """Get location predictions for clusters.
-        
+
     Keyword arguments:
     checkins -- check-ins made by users
     clusters -- clusters table

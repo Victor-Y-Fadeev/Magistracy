@@ -7,7 +7,7 @@ from sklearn.metrics import r2_score
 
 def scale_decorator(func):
     """Scale decorator.
-    
+
     Keyword arguments:
     func -- scale function to decorate
 
@@ -23,7 +23,7 @@ def scale_decorator(func):
 @scale_decorator
 def standardize(features: pd.DataFrame) -> pd.DataFrame:
     """Scale by standardization.
-    
+
     Keyword arguments:
     features -- features table
 
@@ -34,7 +34,7 @@ def standardize(features: pd.DataFrame) -> pd.DataFrame:
 @scale_decorator
 def segment(features: pd.DataFrame) -> pd.DataFrame:
     """Scale by segment.
-    
+
     Keyword arguments:
     features -- features table
 
@@ -45,7 +45,7 @@ def segment(features: pd.DataFrame) -> pd.DataFrame:
 
 def gradient(features: pd.DataFrame, w: pd.Series) -> pd.Series:
     """Gradient of MSE.
-        
+
     Keyword arguments:
     features -- features table
     w        -- current scales vector
@@ -58,7 +58,7 @@ def gradient(features: pd.DataFrame, w: pd.Series) -> pd.Series:
 
 def learn(features: pd.DataFrame, epsilon=0.000001) -> pd.Series:
     """Learn by Gradient descent.
-        
+
     Keyword arguments:
     features -- features table
 
@@ -75,7 +75,7 @@ def learn(features: pd.DataFrame, epsilon=0.000001) -> pd.Series:
 
 def root_mean_squared_error(features: pd.DataFrame, w: pd.Series):
     """RMSE deflection function.
-        
+
     Keyword arguments:
     features -- features table
     w        -- current scales vector
@@ -87,7 +87,7 @@ def root_mean_squared_error(features: pd.DataFrame, w: pd.Series):
 
 def determination(features: pd.DataFrame, w: pd.Series):
     """Coefficient of determination (R^2).
-        
+
     Keyword arguments:
     features -- features table
     w        -- current scales vector
