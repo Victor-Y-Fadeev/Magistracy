@@ -87,6 +87,7 @@ def update_responsibility(graph: nx.graph):
     graph -- friendship network
 
     """
+    was_updated = False
     for i in nx.nodes(graph):
         prev_max, new_max, index = -1.0, -1.0, 0
         for j in nx.neighbors(graph, i):
@@ -98,10 +99,16 @@ def update_responsibility(graph: nx.graph):
                 prev_max, new_max, index = new_max, temp, j
 
         for j in nx.neighbors(graph, i):
-            if j != index:
-                graph.add_edge(i, j, responsibility=graph[i][j]['weight'] - new_max)
-            else:
-                graph.add_edge(i, j, responsibility=graph[i][j]['weight'] - prev_max)
+            temp = graph[i][j]['weight']
+            temp -= new_max if j != index else prev_max
+
+            try:
+                was_updated |= graph[i][j]['responsibility'] != temp
+            except KeyError:
+                was_updated = True
+
+            graph.add_edge(i, j, responsibility=temp)
+    return was_updated
 
 def update_availability(graph: nx.graph):
     """Update availability.
@@ -110,6 +117,7 @@ def update_availability(graph: nx.graph):
     graph -- friendship network
 
     """
+    was_updated = False
     for k in nx.nodes(graph):
         new_sum = min(0, graph[k][k]['responsibility'])
         for j in nx.neighbors(graph, k):
@@ -120,8 +128,14 @@ def update_availability(graph: nx.graph):
                 temp = min(0, new_sum - max(0, graph[i][k]['responsibility']))
             else:
                 temp = new_sum - graph[k][k]['responsibility']
-            graph.add_edge(i, k, availability=temp)
 
+            try:
+                was_updated |= graph[i][k]['availability'] != temp
+            except KeyError:
+                was_updated = True
+
+            graph.add_edge(i, k, availability=temp)
+    return was_updated
 
 def learn(graph: nx.graph, iterations):
     """Learn by Affinity propagation.
@@ -132,11 +146,13 @@ def learn(graph: nx.graph, iterations):
 
     """
     i = 0
-    while i < iterations:
+    was_updated = True
+    while i < iterations and was_updated:
         print('ITERATION:', i)
-        update_responsibility(graph)
-        update_availability(graph)
+        was_updated = update_responsibility(graph)
+        was_updated |= update_availability(graph)
         i += 1
+
 
 def get_clusters(graph: nx.graph):
     """Extract clusters from graph.
@@ -176,11 +192,11 @@ def get_predictions(checkins: pd.Series, clusters) -> pd.Series:
     return predictions['locations'].apply(top)
 
 
-#graph = load_dataset('./Dataset/Gowalla_edges.txt')
-graph = load_graph('./Result/graph.csv')
+graph = load_dataset('./Dataset/Gowalla_edges.txt')
+#graph = load_graph('./Result/graph.csv')
 
-#learn(graph, MAX_ITERATIONS)
-#save_graph(graph, './Result/graph.csv')
+learn(graph, MAX_ITERATIONS)
+save_graph(graph, './Result/graph.csv')
 
 clusters = get_clusters(graph)
 print('CLUSTERS:', len(set(clusters)))
