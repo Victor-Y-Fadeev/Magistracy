@@ -161,8 +161,7 @@ predictions = checkins.reindex(range(len(clusters)), fill_value=[])
 predictions.insert(0, 'cluster', clusters)
 
 predictions = predictions.groupby('cluster')['locations']
-predictions = predictions.agg(sum).reset_index(name='locations')
-predictions.set_index('cluster', inplace=True)
+predictions = predictions.agg(sum).reset_index('cluster')
 
 TOP_LOCATIONS = 10
 top = lambda x: [key for key, _ in Counter(x).most_common(TOP_LOCATIONS)]
