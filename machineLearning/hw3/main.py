@@ -39,7 +39,7 @@ def load_dataset(path) -> nx.graph:
     edges.insert(len(edges.columns), 'weight', np.ones(len(edges.index)))
     return nx.from_pandas_edgelist(edges, edge_attr='weight')
 
-def load_checkins(path) -> pd.DataFrame:
+def load_checkins(path) -> pd.Series:
     """Load users check-ins by path.
 
     Keyword arguments:
@@ -57,7 +57,7 @@ def load_checkins(path) -> pd.DataFrame:
 
     checkins = checkins.groupby('user')['location id']
     checkins = checkins.apply(list).reset_index(name='locations')
-    return checkins.set_index('user')
+    return checkins.set_index('user')['locations']
 
 
 def save_graph(graph: nx.graph, path):
@@ -158,7 +158,7 @@ def get_clusters(graph: nx.graph):
         clusters.append(index)
     return clusters
 
-def get_predictions(checkins: pd.DataFrame, clusters) -> pd.DataFrame:
+def get_predictions(checkins: pd.Series, clusters) -> pd.Series:
     """Get location predictions for clusters.
 
     Keyword arguments:
@@ -166,7 +166,7 @@ def get_predictions(checkins: pd.DataFrame, clusters) -> pd.DataFrame:
     clusters -- clusters table
 
     """
-    predictions = checkins.reindex(range(len(clusters)), fill_value=[])
+    predictions = checkins.to_frame().reindex(range(len(clusters)), fill_value=[])
     predictions.insert(0, 'cluster', clusters)
 
     predictions = predictions.groupby('cluster')['locations']
@@ -189,7 +189,15 @@ print('CLUSTERS:', len(set(clusters)))
 checkins = load_checkins('./Dataset/Gowalla_totalCheckins.txt')
 hidden = checkins.index[np.linspace(0, len(checkins.index), num=HIDDEN_USERS,
                                     endpoint=False, dtype=int)]
-predictions = get_predictions(checkins, clusters)
+
+removed = checkins.drop(hidden)
+predictions = get_predictions(removed, clusters)
 
 
-print(predictions[:10])
+precision = 0
+for id in hidden:
+    if clusters[id] in predictions:
+        precision += len(set(predictions[clusters[id]]).intersection(set(checkins[id])))
+
+precision /= TOP_LOCATIONS * HIDDEN_USERS
+print('PRECISION:', precision)
