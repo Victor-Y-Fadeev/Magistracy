@@ -135,7 +135,7 @@ def get_clusters(graph: nx.graph):
 #graph = load_dataset('./Dataset/Gowalla_edges.txt')
 graph = load_graph('./Result/graph.csv')
 
-#MAX_ITERATIONS = 20
+MAX_ITERATIONS = 20
 #learn(graph, MAX_ITERATIONS)
 #save_graph(graph, './Result/graph.csv')
 
@@ -164,6 +164,9 @@ predictions = predictions.groupby('cluster')['locations']
 predictions = predictions.agg(sum).reset_index(name='locations')
 predictions.set_index('cluster', inplace=True)
 
-predictions = predictions['locations']
-predictions = predictions.apply(lambda x: [key for key, _ in Counter(x).most_common(10)])
+TOP_LOCATIONS = 10
+top = lambda x: [key for key, _ in Counter(x).most_common(TOP_LOCATIONS)]
+predictions = predictions['locations'].apply(top)
 
+
+print(predictions[:10])
