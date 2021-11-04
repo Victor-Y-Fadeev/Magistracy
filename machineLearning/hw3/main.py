@@ -157,6 +157,11 @@ checkins = checkins.apply(list).reset_index(name='locations')
 checkins.set_index('user', inplace=True)
 
 
+HIDDEN = 100
+print(checkins.index[np.linspace(0, len(checkins.index), num=HIDDEN,
+                                 endpoint=False, dtype=int)])
+
+
 predictions = checkins.reindex(range(len(clusters)), fill_value=[])
 predictions.insert(0, 'cluster', clusters)
 
