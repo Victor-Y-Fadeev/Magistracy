@@ -5,6 +5,13 @@ import networkx as nx
 from collections import Counter
 
 
+MAX_ITERATIONS = 20
+DIAGONAL_VALUE = -1.0
+
+HIDDEN_USERS = 100
+TOP_LOCATIONS = 10
+
+
 def modify_decorator(func):
     """Modify decorator.
     
@@ -16,7 +23,7 @@ def modify_decorator(func):
     def wrapper(path) -> nx.graph:
         graph = func(path)
         for i in nx.nodes(graph):
-            graph.add_edge(i, i, weight=-1.0)
+            graph.add_edge(i, i, weight=DIAGONAL_VALUE)
         return graph
     return wrapper
 
@@ -31,6 +38,26 @@ def load_dataset(path) -> nx.graph:
     edges = pd.read_csv(path, sep='\s+', names=('source', 'target'))
     edges.insert(len(edges.columns), 'weight', np.ones(len(edges.index)))
     return nx.from_pandas_edgelist(edges, edge_attr='weight')
+
+def load_checkins(path) -> pd.DataFrame:
+    """Load users check-ins by path.
+        
+    Keyword arguments:
+    path -- path to file
+
+    """
+    checkins = pd.read_csv(path,
+                           sep='\s+',
+                           usecols=('user', 'location id'),
+                           names=('user',
+                                  'check-in time',
+                                  'latitude',
+                                  'longitude',
+                                  'location id'))
+
+    checkins = checkins.groupby('user')['location id']
+    checkins = checkins.apply(list).reset_index(name='locations')
+    return checkins.set_index('user')
 
 
 def save_graph(graph: nx.graph, path):
@@ -131,11 +158,27 @@ def get_clusters(graph: nx.graph):
         clusters.append(index)
     return clusters
 
+def get_predictions(checkins: pd.DataFrame, clusters) -> pd.DataFrame:
+    """Get location predictions for clusters.
+        
+    Keyword arguments:
+    checkins -- check-ins made by users
+    clusters -- clusters table
+
+    """
+    predictions = checkins.reindex(range(len(clusters)), fill_value=[])
+    predictions.insert(0, 'cluster', clusters)
+
+    predictions = predictions.groupby('cluster')['locations']
+    predictions = predictions.agg(sum).reset_index('cluster')
+
+    top = lambda x: [key for key, _ in Counter(x).most_common(TOP_LOCATIONS)]
+    return predictions['locations'].apply(top)
+
 
 #graph = load_dataset('./Dataset/Gowalla_edges.txt')
 graph = load_graph('./Result/graph.csv')
 
-MAX_ITERATIONS = 20
 #learn(graph, MAX_ITERATIONS)
 #save_graph(graph, './Result/graph.csv')
 
@@ -143,34 +186,10 @@ clusters = get_clusters(graph)
 print('CLUSTERS:', len(set(clusters)))
 
 
-checkins = pd.read_csv('./Dataset/Gowalla_totalCheckins.txt',
-                       sep='\s+',
-                       usecols = ('user', 'location id'),
-                       names=('user',
-                              'check-in time',
-                              'latitude',
-                              'longitude',
-                              'location id'))
-
-checkins = checkins.groupby('user')['location id']
-checkins = checkins.apply(list).reset_index(name='locations')
-checkins.set_index('user', inplace=True)
-
-
-HIDDEN = 100
-print(checkins.index[np.linspace(0, len(checkins.index), num=HIDDEN,
-                                 endpoint=False, dtype=int)])
-
-
-predictions = checkins.reindex(range(len(clusters)), fill_value=[])
-predictions.insert(0, 'cluster', clusters)
-
-predictions = predictions.groupby('cluster')['locations']
-predictions = predictions.agg(sum).reset_index('cluster')
-
-TOP_LOCATIONS = 10
-top = lambda x: [key for key, _ in Counter(x).most_common(TOP_LOCATIONS)]
-predictions = predictions['locations'].apply(top)
+checkins = load_checkins('./Dataset/Gowalla_totalCheckins.txt')
+hidden = checkins.index[np.linspace(0, len(checkins.index), num=HIDDEN_USERS,
+                                    endpoint=False, dtype=int)]
+predictions = get_predictions(checkins, clusters)
 
 
 print(predictions[:10])
