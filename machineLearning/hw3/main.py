@@ -5,14 +5,28 @@ import networkx as nx
 from collections import Counter
 
 
-MAX_NODES = 1000
-DIAGONAL_VALUE = -1.0
+MAX_NODES = 100
+DIAGONAL_VALUE = -1
 
 MAX_ITERATIONS = 1000
 
 HIDDEN_USERS = 100
 TOP_LOCATIONS = 10
 
+
+def completion_decorator(func):
+    """Completion decorator.
+
+    Keyword arguments:
+    func -- function to decorate
+
+    """
+    @functools.wraps(func)
+    def wrapper(path) -> nx.graph:
+        graph = func(path)
+
+        return graph
+    return wrapper
 
 def diagonal_decorator(func):
     """Diagonal decorator.
@@ -26,6 +40,7 @@ def diagonal_decorator(func):
         graph = func(path)
         for i in nx.nodes(graph):
             graph.add_edge(i, i, weight=DIAGONAL_VALUE)
+
         return graph
     return wrapper
 
@@ -47,6 +62,7 @@ def cut_decorator(func):
         return data
     return wrapper
 
+@completion_decorator
 @diagonal_decorator
 @cut_decorator
 def load_dataset(path) -> nx.graph:
@@ -57,7 +73,7 @@ def load_dataset(path) -> nx.graph:
 
     """
     edges = pd.read_csv(path, sep='\s+', names=('source', 'target'))
-    edges.insert(len(edges.columns), 'weight', np.ones(len(edges.index)))
+    edges.insert(len(edges.columns), 'weight', np.ones(len(edges.index), dtype=int))
     return nx.from_pandas_edgelist(edges, edge_attr='weight')
 
 @cut_decorator
@@ -111,7 +127,7 @@ def update_responsibility(graph: nx.graph):
     """
     was_updated = False
     for i in nx.nodes(graph):
-        prev_max, new_max, index = -1.0, -1.0, 0
+        prev_max, new_max, index = graph[i][i]['weight'], graph[i][i]['weight'], i
         for j in nx.neighbors(graph, i):
             try:
                 temp = graph[i][j]['weight'] + graph[i][j]['availability']
