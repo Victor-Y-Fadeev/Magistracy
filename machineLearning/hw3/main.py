@@ -5,17 +5,17 @@ import networkx as nx
 from collections import Counter
 
 
-MAX_NODES = 100
+MAX_NODES = 1000
 DIAGONAL_VALUE = -1
 
-MAX_ITERATIONS = 1000
+MAX_ITERATIONS = 100
 
 HIDDEN_USERS = 100
 TOP_LOCATIONS = 10
 
 
-def completion_decorator(func):
-    """Completion decorator.
+def fill_decorator(func):
+    """Fill decorator.
 
     Keyword arguments:
     func -- function to decorate
@@ -58,14 +58,14 @@ def cut_decorator(func):
     def wrapper(path):
         data = func(path)
         if type(data) is pd.Series:
-            data.drop([id for id in data.index if id > MAX_NODES], inplace=True)
+            data.drop([id for id in data.index if id >= MAX_NODES], inplace=True)
         else:
-            data.remove_nodes_from([node for node in data.nodes if node > MAX_NODES])
+            data.remove_nodes_from([node for node in data.nodes if node >= MAX_NODES])
 
         return data
     return wrapper
 
-@completion_decorator
+@fill_decorator
 @diagonal_decorator
 @cut_decorator
 def load_dataset(path) -> nx.graph:
