@@ -5,18 +5,20 @@ import networkx as nx
 from collections import Counter
 
 
-MAX_ITERATIONS = 20
+MAX_NODES = 1000
 DIAGONAL_VALUE = -1.0
+
+MAX_ITERATIONS = 1000
 
 HIDDEN_USERS = 100
 TOP_LOCATIONS = 10
 
 
-def modify_decorator(func):
-    """Modify decorator.
+def diagonal_decorator(func):
+    """Diagonal decorator.
 
     Keyword arguments:
-    func -- load function to decorate
+    func -- function to decorate
 
     """
     @functools.wraps(func)
@@ -27,7 +29,26 @@ def modify_decorator(func):
         return graph
     return wrapper
 
-@modify_decorator
+def cut_decorator(func):
+    """Cut decorator.
+
+    Keyword arguments:
+    func -- function to decorate
+
+    """
+    @functools.wraps(func)
+    def wrapper(path):
+        data = func(path)
+        if type(data) is pd.Series:
+            data.drop([id for id in data.index if id > MAX_NODES], inplace=True)
+        else:
+            data.remove_nodes_from([node for node in data.nodes if node > MAX_NODES])
+
+        return data
+    return wrapper
+
+@diagonal_decorator
+@cut_decorator
 def load_dataset(path) -> nx.graph:
     """Load edges list by path.
 
@@ -39,6 +60,7 @@ def load_dataset(path) -> nx.graph:
     edges.insert(len(edges.columns), 'weight', np.ones(len(edges.index)))
     return nx.from_pandas_edgelist(edges, edge_attr='weight')
 
+@cut_decorator
 def load_checkins(path) -> pd.Series:
     """Load users check-ins by path.
 
