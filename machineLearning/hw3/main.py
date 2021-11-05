@@ -24,6 +24,9 @@ def completion_decorator(func):
     @functools.wraps(func)
     def wrapper(path) -> nx.graph:
         graph = func(path)
+        for i in nx.nodes(graph):
+            for j in set(nx.nodes(graph)).difference(set(nx.neighbors(graph, i))):
+                graph.add_edge(i, j, weight=0)
 
         return graph
     return wrapper
