@@ -5,13 +5,14 @@ import networkx as nx
 from collections import Counter
 
 
-MAX_NODES = 1000
+MAX_NODES = 100
 DIAGONAL_VALUE = -1
 NOISE_POWER = -16
 
+GAMMA = 0.5
 MAX_ITERATIONS = 100
 
-HIDDEN_USERS = 100
+HIDDEN_USERS = 10
 TOP_LOCATIONS = 10
 
 
@@ -82,6 +83,7 @@ def cut_decorator(func):
 
         return data
     return wrapper
+
 
 @noise_decorator
 @fill_decorator
@@ -164,6 +166,7 @@ def update_responsibility(graph: nx.graph):
 
             try:
                 was_updated |= graph[i][j]['responsibility'] != temp
+                temp += GAMMA * graph[i][j]['responsibility']
             except KeyError:
                 was_updated = True
 
@@ -191,6 +194,7 @@ def update_availability(graph: nx.graph):
 
             try:
                 was_updated |= graph[i][k]['availability'] != temp
+                temp += GAMMA * graph[i][k]['availability']
             except KeyError:
                 was_updated = True
 
