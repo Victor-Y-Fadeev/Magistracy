@@ -7,12 +7,30 @@ from collections import Counter
 
 MAX_NODES = 1000
 DIAGONAL_VALUE = -1
+NOISE_POWER = -16
 
 MAX_ITERATIONS = 100
 
 HIDDEN_USERS = 100
 TOP_LOCATIONS = 10
 
+
+def noise_decorator(func):
+    """Noise decorator.
+
+    Keyword arguments:
+    func -- function to decorate
+
+    """
+    @functools.wraps(func)
+    def wrapper(path) -> nx.graph:
+        graph = func(path)
+        for i in graph.edges:
+            noise = np.random.uniform(high=10.0) * pow(10, NOISE_POWER)
+            graph[i[0]][i[1]]['weight'] += noise
+
+        return graph
+    return wrapper
 
 def fill_decorator(func):
     """Fill decorator.
@@ -65,6 +83,7 @@ def cut_decorator(func):
         return data
     return wrapper
 
+@noise_decorator
 @fill_decorator
 @diagonal_decorator
 @cut_decorator
