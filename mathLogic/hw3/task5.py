@@ -2,7 +2,11 @@ from functools import reduce
 from sympy import *
 
 
-def to_canonical_form(expr):
+prefix = 's'
+number = 1
+
+
+def to_canonical_form(expr: Basic) -> Basic:
     '''Evaluate expression to Canonical form.
     
     Keyword arguments:
@@ -43,29 +47,46 @@ def to_canonical_form(expr):
             return Or(And(cond, stmt_true), And(Not(cond), stmt_false))
 
 
+def get_variable() -> str:
+    ''' Get next generated variable.
+
+    '''
+    global prefix
+    global number
+    variable = '{}{}'.format(prefix, number)
+    number += 1
+    return variable
+
+def CNF(phi: Basic, delta: set[Basic]) -> tuple[Basic, set[Basic]]:
+    '''Tseytin transformation.
+    
+    Keyword arguments:
+    phi   -- logical expression
+    delta -- delta expressions
+
+    '''
+    if isinstance(phi, Symbol):
+        return (phi, delta)
+    elif isinstance(phi, Not):
+        l, delta_prime = CNF(phi.args[0], delta)
+        return (Not(l), delta_prime)
+    elif isinstance(phi, And):
+        variable = get_variable()
+        l_1, delta_1 = CNF(phi.args[0], delta)
+        l_2, delta_2 = CNF(reduce(And, phi.args[1:]), delta_1)
+        return (variable, set().union(delta_2))
+
+
 p, q, r = symbols('p, q, r')
 
 expr_3a = Equivalent(p >> q, ~q >> ~p)
 expr_3b = Equivalent(p >> (q >> r), ~r >> (~q >>~p))
 expr_4 = ~(~(p & q) >> ~r)
 
-#print(Xor(p))
-#print(Xor(p, q))
-#print(Xor(p, q, r))
+#print(to_canonical_form(expr_3a))
+#print(to_canonical_form(expr_3b))
+#print(to_canonical_form(expr_4))
 
-#print(Xor(p, q, r))
-expr = p ^ q ^ r
-#print(to_canonical_form(expr))
-print(to_canonical_form(Equivalent(p, q)))
+print(CNF(expr_4, (p,q,r)))
 
-#print(type(p))
-#print(p.args)
-
-#print(And(map(Not, p)))
-
-
-#print(type(expr_3a))
-#print(type(p))
-
-#print(to_cnf(expr_3b))
-#print(to_cnf(expr_4))
+print(set((1, 2, 3) + (1, 2, 3)))
