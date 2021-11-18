@@ -1,5 +1,6 @@
 from functools import reduce
 from sympy import *
+from sympy.logic.boolalg import Boolean
 
 
 prefix = 's'
@@ -86,6 +87,20 @@ def CNF(phi: Basic, delta: set[Basic]) -> tuple[Basic, set[Basic]]:
                                ~l_2 | variable)).union(delta_2))
 
 
+def DPLL(expr: Basic, model: dict[Symbol]) -> tuple[Boolean, dict[Symbol]]:
+    try:
+        key = next(key for key in model.keys() if model.get(key) is None)
+    except StopIteration:
+        return (expr.subs(model), model)
+
+    model[key] = True
+    result, full = DPLL(expr, model)
+    if result:
+        return (result, full)
+
+    model[key] = False
+    return DPLL(expr, model)
+
 p, q, r = symbols('p, q, r')
 
 expr_3a = Equivalent(p >> q, ~q >> ~p)
@@ -96,6 +111,10 @@ expr_4 = ~(~(p & q) >> ~r)
 #print(to_canonical_form(expr_3b))
 #print(to_canonical_form(expr_4))
 
+
 phi, delta = CNF(to_canonical_form(expr_4), set())
 cnf = phi & reduce(And, delta)
 print(cnf)
+
+
+print(DPLL(cnf, dict.fromkeys(cnf.atoms())))
