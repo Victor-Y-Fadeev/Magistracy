@@ -47,7 +47,7 @@ def to_canonical_form(expr: Basic) -> Basic:
             return (cond & stmt_true) | (~cond & stmt_false)
 
 
-def get_variable() -> str:
+def get_variable() -> Symbol:
     ''' Get next generated variable.
 
     '''
@@ -55,7 +55,7 @@ def get_variable() -> str:
     global number
     variable = '{}{}'.format(prefix, number)
     number += 1
-    return variable
+    return symbols(variable)
 
 def CNF(phi: Basic, delta: set[Basic]) -> tuple[Basic, set[Basic]]:
     '''Tseytin transformation.
@@ -69,12 +69,21 @@ def CNF(phi: Basic, delta: set[Basic]) -> tuple[Basic, set[Basic]]:
         return (phi, delta)
     elif isinstance(phi, Not):
         l, delta_prime = CNF(phi.args[0], delta)
-        return (Not(l), delta_prime)
+        return (~l, delta_prime)
     elif isinstance(phi, And):
         variable = get_variable()
         l_1, delta_1 = CNF(phi.args[0], delta)
         l_2, delta_2 = CNF(reduce(And, phi.args[1:]), delta_1)
-        return (variable, set().union(delta_2))
+        return (variable, set((~variable | l_1,
+                               ~variable | l_2,
+                               ~l_1 | ~l_2 | variable)).union(delta_2))
+    elif isinstance(phi, Or):
+        variable = get_variable()
+        l_1, delta_1 = CNF(phi.args[0], delta)
+        l_2, delta_2 = CNF(reduce(And, phi.args[1:]), delta_1)
+        return (variable, set((~variable | l_1 | l_2,
+                               ~l_1 | variable,
+                               ~l_2 | variable)).union(delta_2))
 
 
 p, q, r = symbols('p, q, r')
@@ -83,10 +92,10 @@ expr_3a = Equivalent(p >> q, ~q >> ~p)
 expr_3b = Equivalent(p >> (q >> r), ~r >> (~q >>~p))
 expr_4 = ~(~(p & q) >> ~r)
 
-print(to_canonical_form(expr_3a))
-print(to_canonical_form(expr_3b))
-print(to_canonical_form(expr_4))
+#print(to_canonical_form(expr_3a))
+#print(to_canonical_form(expr_3b))
+#print(to_canonical_form(expr_4))
 
-#print(CNF(expr_4, (p,q,r)))
-
-#print(set((1, 2, 3) + (1, 2, 3)))
+phi, delta = CNF(to_canonical_form(expr_4), set())
+cnf = phi & reduce(And, delta)
+print(cnf)
