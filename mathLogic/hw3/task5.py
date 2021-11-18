@@ -9,7 +9,7 @@ number = 1
 
 def to_canonical_form(expr: Basic) -> Basic:
     '''Evaluate expression to Canonical form.
-    
+
     Keyword arguments:
     expr -- logical expression
 
@@ -60,7 +60,7 @@ def get_variable() -> Symbol:
 
 def CNF(phi: Basic, delta: set[Basic]) -> tuple[Basic, set[Basic]]:
     '''Tseytin transformation.
-    
+
     Keyword arguments:
     phi   -- logical expression
     delta -- delta expressions
@@ -88,6 +88,13 @@ def CNF(phi: Basic, delta: set[Basic]) -> tuple[Basic, set[Basic]]:
 
 
 def DPLL(expr: Basic, model: dict[Symbol]) -> tuple[Boolean, dict[Symbol]]:
+    '''Davis–Putnam–Logemann–Loveland algorithm.
+
+    Keyword arguments:
+    expr  -- logical expression
+    model -- expression atoms dictionary
+
+    '''
     try:
         key = next(key for key in model.keys() if model.get(key) is None)
     except StopIteration:
