@@ -23,28 +23,28 @@ def to_canonical_form(expr: Basic) -> Basic:
         elif isinstance(expr, Or):
             return reduce(Or, args)
         elif isinstance(expr, Not):
-            return Not(next(args))
+            return ~next(args)
         elif isinstance(expr, Xor):
             left = next(args)
             right = to_canonical_form(reduce(Xor, args))
-            return And(Or(left, right), Not(And(left, right)))
+            return (left | right) & ~(left & right)
         elif isinstance(expr, Nand):
-            return Not(reduce(And, args))
+            return ~reduce(And, args)
         elif isinstance(expr, Nor):
-            return Not(reduce(Or, args))
+            return ~reduce(Or, args)
         elif isinstance(expr, Implies):
             left = next(args)
             right = next(args)
-            return Or(Not(left), right)
+            return ~left | right
         elif isinstance(expr, Equivalent):
             left = next(args)
             right = next(args)
-            return Or(And(left, right), And(Not(left), Not(right)))
+            return (left & right) | (~left & ~right)
         elif isinstance(expr, ITE):
             cond = next(args)
             stmt_true = next(args)
             stmt_false = next(args)
-            return Or(And(cond, stmt_true), And(Not(cond), stmt_false))
+            return (cond & stmt_true) | (~cond & stmt_false)
 
 
 def get_variable() -> str:
@@ -83,10 +83,10 @@ expr_3a = Equivalent(p >> q, ~q >> ~p)
 expr_3b = Equivalent(p >> (q >> r), ~r >> (~q >>~p))
 expr_4 = ~(~(p & q) >> ~r)
 
-#print(to_canonical_form(expr_3a))
-#print(to_canonical_form(expr_3b))
-#print(to_canonical_form(expr_4))
+print(to_canonical_form(expr_3a))
+print(to_canonical_form(expr_3b))
+print(to_canonical_form(expr_4))
 
-print(CNF(expr_4, (p,q,r)))
+#print(CNF(expr_4, (p,q,r)))
 
-print(set((1, 2, 3) + (1, 2, 3)))
+#print(set((1, 2, 3) + (1, 2, 3)))
