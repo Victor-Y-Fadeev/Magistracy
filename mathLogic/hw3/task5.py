@@ -3,6 +3,12 @@ from sympy import *
 
 
 def to_canonical_form(expr):
+    '''Evaluate expression to Canonical form.
+    
+    Keyword arguments:
+    expr -- logical expression
+
+    '''
     if isinstance(expr, Symbol):
         return expr
     else:
@@ -19,16 +25,22 @@ def to_canonical_form(expr):
             right = to_canonical_form(reduce(Xor, args))
             return And(Or(left, right), Not(And(left, right)))
         elif isinstance(expr, Nand):
-            return
+            return Not(reduce(And, args))
         elif isinstance(expr, Nor):
-            return
+            return Not(reduce(Or, args))
         elif isinstance(expr, Implies):
-            return
+            left = next(args)
+            right = next(args)
+            return Or(Not(left), right)
         elif isinstance(expr, Equivalent):
-            return
+            left = next(args)
+            right = next(args)
+            return Or(And(left, right), And(Not(left), Not(right)))
         elif isinstance(expr, ITE):
-            return
-
+            cond = next(args)
+            stmt_true = next(args)
+            stmt_false = next(args)
+            return Or(And(cond, stmt_true), And(Not(cond), stmt_false))
 
 
 p, q, r = symbols('p, q, r')
@@ -43,7 +55,8 @@ expr_4 = ~(~(p & q) >> ~r)
 
 #print(Xor(p, q, r))
 expr = p ^ q ^ r
-print(to_canonical_form(expr))
+#print(to_canonical_form(expr))
+print(to_canonical_form(Equivalent(p, q)))
 
 #print(type(p))
 #print(p.args)
