@@ -151,26 +151,25 @@ def update_responsibility(graph: nx.graph):
     """
     was_updated = False
     for i in nx.nodes(graph):
-        prev_max, new_max, index = graph[i][i]['weight'], graph[i][i]['weight'], i
-        for j in nx.neighbors(graph, i):
-            try:
-                temp = graph[i][j]['weight'] + graph[i][j]['availability']
-            except KeyError:
-                temp = graph[i][j]['weight']
-            if new_max <= temp:
-                prev_max, new_max, index = new_max, temp, j
+        for k in nx.neighbors(graph, i):
+            maximum = graph[i][nx.neighbors(graph, i)[:1]]['weight']
+            for j in nx.neighbors(graph, i):
+                try:
+                    temp = graph[i][j]['weight'] + graph[i][j]['availability']
+                except KeyError:
+                    temp = graph[i][j]['weight']
+                if maximum <= temp:
+                    maximum = temp
 
-        for j in nx.neighbors(graph, i):
-            temp = graph[i][j]['weight']
-            temp -= new_max if j != index else prev_max
+        temp = graph[i][j]['weight'] - maximum
 
-            try:
-                was_updated |= graph[i][j]['responsibility'] != temp
-                temp += GAMMA * graph[i][j]['responsibility']
-            except KeyError:
-                was_updated = True
+        try:
+            was_updated |= graph[i][j]['responsibility'] != temp
+            temp += GAMMA * graph[i][j]['responsibility']
+        except KeyError:
+            was_updated = True
 
-            graph.add_edge(i, j, responsibility=temp)
+        graph.add_edge(i, j, responsibility=temp)
     return was_updated
 
 def update_availability(graph: nx.graph):
